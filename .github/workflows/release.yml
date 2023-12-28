@@ -1,0 +1,104 @@
+---
+name: "Build Zeta release"
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Specify the version"
+        required: true
+        default: "v11.0.4"
+  pull_request:
+    branches:
+      - "master"
+
+permissions:
+  contents: "write"
+
+env:
+  ZETA_VERSION: "${{ inputs.version || 'v11.0.4' }}"
+
+jobs:
+  build:
+    name: "Build"
+    runs-on: "ubuntu-latest-l"
+    steps:
+      - id: "setup-go"
+        name: "Setup Go"
+        uses: "actions/setup-go@v5"
+        with:
+          go-version: "1.20"
+
+      #- id: "setup-dependencies"
+      #  name: "Install required system packages"
+      #  run: |
+      #    sudo apt-get update
+      #    sudo apt-get install -y libssl-dev libudev-dev pkg-config zlib1g-dev llvm clang cmake make libprotobuf-dev protobuf-compiler
+
+      - id: "clone-pipeline"
+        name: "Clone pipeline"
+        uses: "actions/checkout@v4"
+        with:
+          path: "pipeline"
+
+      - id: "clone"
+        name: "Clone Zeta source"
+        uses: "actions/checkout@v4"
+        with:
+          repository: "zeta-chain/node"
+          fetch-tags: true
+          path: "zeta-node"
+          ref: "refs/tags/${{ env.ZETA_VERSION }}"
+          submodules: true
+
+      - id: "apply-patches"
+        name: "Apply patches"
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          cd "${GITHUB_WORKSPACE}/zeta-node"
+          git am --3way "${GITHUB_WORKSPACE}/pipeline/patches"/*.patch
+
+      - id: "build"
+        name: "Build zetacored binary"
+        run: |
+          cd zeta-node
+          make build
+
+      - id: "upload-artifact"
+        name: "Save binary to workspace"
+        uses: "actions/upload-artifact@v3"
+        with:
+          name: "zeta"
+          path: "zeta-node/bin/zeta*"
+          if-no-files-found: "error"
+          retention-days: 1
+
+  publish:
+    name: "Publish"
+    needs: "build"
+    runs-on: "ubuntu-latest"
+    if: "${{ github.event_name == 'workflow_dispatch' }}"
+    steps:
+      - id: "download-artifact"
+        name: "Download binary from workspace"
+        uses: "actions/download-artifact@v3"
+        with:
+          name: "zeta"
+          path: "binaries"
+
+      - id: "publish"
+        name: "Publish Github release"
+        uses: "softprops/action-gh-release@v1"
+        with:
+          body: |
+            For changes, see here: https://github.com/zeta-chain/node/releases/tag/${{ env.ZETA_VERSION }}
+          files: |
+            binaries/zetacored
+            binaries/zetaclientd
+          tag_name: "${{ env.ZETA_VERSION }}"
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: true
+          generate_release_notes: true
