@@ -66,6 +66,12 @@ jobs:
           cd zeta-node
           make build
 
+          # Smoke test
+          ldd ./bin/zetacored || :
+          ldd ./bin/zetaclientd || :
+          ./bin/zetacored version --long
+          ./bin/zetaclientd version
+
       - id: "upload-artifact"
         name: "Save binary to workspace"
         uses: "actions/upload-artifact@v3"
