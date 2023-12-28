@@ -29,11 +29,11 @@ jobs:
         with:
           go-version: "1.20"
 
-      - id: "setup-dependencies"
-        name: "Install required system packages"
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential curl git musl-dev
+      #- id: "setup-dependencies"
+      #  name: "Install required system packages"
+      #  run: |
+      #    sudo apt-get update
+      #    sudo apt-get install -y libssl-dev libudev-dev pkg-config zlib1g-dev llvm clang cmake make libprotobuf-dev protobuf-compiler
 
       - id: "clone-pipeline"
         name: "Clone pipeline"
@@ -64,7 +64,7 @@ jobs:
         name: "Build zetacored binary"
         run: |
           cd zeta-node
-          make CC="x86_64-linux-musl-gcc" CGO_LDFLAGS="-L." LEDGER_ENABLED=false LINK_STATICALLY=true build
+          make build
 
           # Smoke test
           ldd ./bin/zetacored || :
