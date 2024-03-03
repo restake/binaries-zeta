@@ -1,14 +1,14 @@
-From b7bffd3b65369df9b298715c9def8914162ddf85 Mon Sep 17 00:00:00 2001
+From 6c185868f1d86a96b57f2b23a520dce62224914f Mon Sep 17 00:00:00 2001
 From: Mark Vainomaa <mikroskeem@mikroskeem.eu>
 Date: Thu, 28 Dec 2023 13:18:03 +0200
 Subject: [PATCH] Create build task
 
 ---
- Makefile | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ Makefile | 4 ++++
+ 1 file changed, 4 insertions(+)
 
 diff --git a/Makefile b/Makefile
-index 34862f40..2c50e6d6 100644
+index bf95f400..86304f5b 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -86,6 +86,10 @@ install: go.sum
@@ -22,13 +22,6 @@ index 34862f40..2c50e6d6 100644
  install-zetaclient: go.sum
  		@echo "--> Installing zetaclientd"
  		@go install -mod=readonly $(BUILD_FLAGS) ./cmd/zetaclientd
-@@ -293,4 +297,4 @@ release:
- 		-v `pwd`:/go/src/$(PACKAGE_NAME) \
- 		-w /go/src/$(PACKAGE_NAME) \
- 		ghcr.io/goreleaser/goreleaser-cross:${GOLANG_CROSS_VERSION} \
--		release --clean --skip-validate
-\ No newline at end of file
-+		release --clean --skip-validate
 -- 
 2.42.0
 
